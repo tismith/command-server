@@ -32,18 +32,6 @@ int main(int argc, char *argv[])
         char *string;
         char c;
     } local_struct;
-    struct packed_wlinfo {
-        char *essid;
-        char *ifname;
-        unsigned char macaddress[6];
-        int qual;
-        int avg_qual;
-        int max_qual;
-        int level;
-        int noise;
-        int bitrate;
-        int freq;
-    } packed_wlinfo;
     struct timeval timeout;
 
     bzero(buf, sizeof(buf));
