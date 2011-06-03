@@ -1,5 +1,7 @@
 all: client server
 
+USE_TPL=1
+
 ifdef USE_TPL
 CFLAGS += -DUSE_TPL
 TPL_SOURCES += tpl.c
