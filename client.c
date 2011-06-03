@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <memory.h>
 
+#ifdef USE_TPL
 #include "tpl.h"
+#endif
 
 #define MAX_COMMAND 256
 #define COMMAND_START '$'
@@ -25,13 +27,14 @@ int main(int argc, char *argv[])
     struct sockaddr_in serv_addr, cli_addr;
     char buf[1024];
     int n = 0;
+#ifdef USE_TPL
     tpl_node *tn;
-    int id;
     struct struct_type {
         int x;
         char *string;
         char c;
     } local_struct;
+#endif
     struct timeval timeout;
 
     bzero(buf, sizeof(buf));
@@ -74,11 +77,13 @@ int main(int argc, char *argv[])
     n = read(sockfd, buf, sizeof(buf));
     printf("Read %d from server: %s\n", n, buf);
 
+#ifdef USE_TPL
     tn = tpl_map("S(isc)", &local_struct);
     tpl_load(tn, TPL_MEM|TPL_EXCESS_OK, buf, n);
     tpl_unpack(tn, 0);
     printf("S.i = %d, S.s = %s, S.c = %c\n", local_struct.x, local_struct.string, local_struct.c);
     tpl_free(tn);
+#endif
 
     bzero(buf, sizeof(buf));
     return 0;

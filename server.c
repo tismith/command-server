@@ -9,7 +9,9 @@
 
 #include <sys/ioctl.h>
 
+#ifdef USE_TPL
 #include "tpl.h"
+#endif
 
 #define MAX_COMMAND 256
 #define COMMAND_START '$'
@@ -37,6 +39,7 @@ int helloworld (char *request, char *buffer, int buf_len) {
     return strlen(buffer);
 }
 
+#ifdef USE_TPL
 int testbinary(char *request, char* buffer, int buf_len) {
     tpl_node *tn;
     int id = 0;
@@ -59,7 +62,7 @@ int testbinary(char *request, char* buffer, int buf_len) {
     if (DEBUG) fprintf(stderr, "testbinary: returning %d\n", sz);
     return sz;
 }
-
+#endif
 
 /* Add new commands here */
 static struct command_def command_defs[] = {
@@ -75,12 +78,14 @@ static struct command_def command_defs[] = {
         .responder_command = "iwpriv ath0 doth_reassoc 1",
         .responder  = NULL
     },
+#ifdef USE_TPL
     {
         .request = "testbinary",
         .type = builtin,
         .responder_command = "",
         .responder = testbinary
     },
+#endif
     {
         .request = "helloworld",
         .type = builtin,

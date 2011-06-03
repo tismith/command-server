@@ -1,10 +1,16 @@
 all: client server
 
-server: server.c tpl.c tpl.h 
-	$(CC) -o server server.c tpl.c
+ifdef USE_TPL
+CFLAGS += -DUSE_TPL
+TPL_SOURCES += tpl.c
+TPL_HEADERS += tpl.h
+endif
 
-client: client.c tpl.c tpl.h
-	$(CC) -o client client.c tpl.c
+server: server.c $(TPL_SOURCES) $(TPL_HEADERS)
+	$(CC) $(CFLAGS) -o server server.c $(TPL_SOURCES)
+
+client: client.c $(TPL_SOURCES) $(TPL_HEADERS)
+	$(CC) $(CFLAGS) -o client client.c $(TPL_SOURCES)
 
 .PHONY: clean
 clean:
