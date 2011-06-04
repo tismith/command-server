@@ -72,17 +72,27 @@ int main(int argc, char *argv[])
         error("connect failed\n");
     }
 
+    printf("$helloworld*\n");
+    write(sockfd, "$helloworld*\n", sizeof("$helloworld*\n"));
+    n = read(sockfd, buf, sizeof(buf));
+    printf("Read %d from server: %s\n", n, buf);
     
+#ifdef USE_TPL
     write(sockfd, "$testbinary*\n", sizeof("$testbinary*\n"));
     n = read(sockfd, buf, sizeof(buf));
     printf("Read %d from server: %s\n", n, buf);
 
-#ifdef USE_TPL
     tn = tpl_map("S(isc)", &local_struct);
     tpl_load(tn, TPL_MEM|TPL_EXCESS_OK, buf, n);
     tpl_unpack(tn, 0);
     printf("S.i = %d, S.s = %s, S.c = %c\n", local_struct.x, local_struct.string, local_struct.c);
     tpl_free(tn);
+#endif
+
+#ifdef USE_LUA
+    write(sockfd, "$testlua*\n", sizeof("$testlua*\n"));
+    //n = read(sockfd, buf, sizeof(buf));
+    //printf("Read %d from server: %s\n", n, buf);
 #endif
 
     bzero(buf, sizeof(buf));

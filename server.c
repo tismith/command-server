@@ -13,6 +13,13 @@
 #include "tpl.h"
 #endif
 
+#ifdef USE_LUA
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#define LUA_SOURCE "commands.lua"
+#endif
+
 #define MAX_COMMAND 256
 #define COMMAND_START '$'
 #define COMMAND_END '*'
@@ -20,6 +27,10 @@
 #define ERROR_COMMAND "ERR>Command returned an error\n"
 
 #define DEBUG 0
+
+#ifdef USE_LUA
+static lua_State *L;
+#endif
 
 void handle_connection(int);
 
@@ -29,7 +40,12 @@ void sigchld_handler(int s) {
 
 struct command_def {
     const char* request;
-    enum type { builtin, shell } type;
+    enum type { 
+        builtin, 
+#ifdef USE_LUA
+        lua,
+#endif
+        shell } type;
     const char* responder_command;
     int (*responder) (char* request, char *buffer, int buf_len);
 };
@@ -78,6 +94,14 @@ static struct command_def command_defs[] = {
         .responder_command = "iwpriv ath0 doth_reassoc 1",
         .responder  = NULL
     },
+#ifdef USE_LUA
+    {
+        .request = "testlua",
+        .type = lua,
+        .responder_command = "testlua",
+        .responder = NULL
+    },
+#endif
 #ifdef USE_TPL
     {
         .request = "testbinary",
@@ -141,6 +165,25 @@ static void handle_builtin(char * raw_request, struct command_def *request, int 
      }
 }
 
+#ifdef USE_LUA
+static void handle_lua(char * raw_request, struct command_def *request, int sock) {
+     char buffer[1024];
+     int n = 0;
+     int sz = 0;
+     int result = 0;
+
+     bzero(buffer, sizeof(buffer));
+
+     lua_getfield(L, LUA_GLOBALSINDEX, request->responder_command);
+     lua_pushstring(L, raw_request);
+     /* what are these magic numbers?? */
+     lua_call(L, 1, 1);
+     result = lua_toboolean(L, 1);
+     lua_pop(L, 1);
+     return;
+}
+#endif
+
 static void handle_command(char* request, int sock) {
     int i = 0;
     int handled = 0;
@@ -152,6 +195,12 @@ static void handle_command(char* request, int sock) {
                 handle_builtin(request, &command_defs[i], sock);
                 handled = 1;
                 break;
+#ifdef USE_LUA
+            case lua:
+                handle_lua(request, &command_defs[i], sock);
+                handled = 1;
+                break;
+#endif
             case shell:
                 handle_shell(request, &command_defs[i], sock);
                 handled = 1;
@@ -248,6 +297,13 @@ int main(int argc, char *argv[])
     sa.sa_flags = SA_RESTART;
     if (sigaction(SIGCHLD, &sa, NULL) == -1) 
         error("Error setting signal handler", 1);
+
+#ifdef USE_LUA
+    L = luaL_newstate();
+    luaL_openlibs(L);
+
+    luaL_dofile(L, LUA_SOURCE);
+#endif
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) 
