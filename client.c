@@ -72,12 +72,13 @@ int main(int argc, char *argv[])
         error("connect failed\n");
     }
 
-    printf("$helloworld*\n");
+    printf(">> $helloworld*\n");
     write(sockfd, "$helloworld*\n", sizeof("$helloworld*\n"));
     n = read(sockfd, buf, sizeof(buf));
     printf("Read %d from server: %s\n", n, buf);
     
 #ifdef USE_TPL
+    printf(">> $testbinary*\n");
     write(sockfd, "$testbinary*\n", sizeof("$testbinary*\n"));
     n = read(sockfd, buf, sizeof(buf));
     printf("Read %d from server: %s\n", n, buf);
@@ -90,9 +91,10 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef USE_LUA
+    printf(">> $testlua*\n");
     write(sockfd, "$testlua*\n", sizeof("$testlua*\n"));
-    //n = read(sockfd, buf, sizeof(buf));
-    //printf("Read %d from server: %s\n", n, buf);
+    n = read(sockfd, buf, sizeof(buf));
+    printf("Read %d from server: %s\n", n, buf);
 #endif
 
     bzero(buf, sizeof(buf));

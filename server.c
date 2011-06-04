@@ -167,18 +167,22 @@ static void handle_builtin(char * raw_request, struct command_def *request, int 
 
 #ifdef USE_LUA
 static void handle_lua(char * raw_request, struct command_def *request, int sock) {
-     char buffer[1024];
+     char *result;
      int n = 0;
-     int sz = 0;
-     int result = 0;
-
-     bzero(buffer, sizeof(buffer));
+     size_t sz = 0;
 
      lua_getfield(L, LUA_GLOBALSINDEX, request->responder_command);
      lua_pushstring(L, raw_request);
      /* what are these magic numbers?? */
      lua_call(L, 1, 1);
-     result = lua_toboolean(L, 1);
+     result = (char *)lua_tolstring(L, 1, &sz);
+    
+     /* I think I have to use the string before I pop it from the stack */
+     n = write(sock, result, sz);
+     if (n < 0) { 
+         fprintf(stderr, "Error writing to socket\n"); 
+     }
+
      lua_pop(L, 1);
      return;
 }
