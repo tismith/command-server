@@ -1,3 +1,5 @@
 Basic skeleton for a networked client/server command framework.
 
 Includes examples of using libtpl for binary serialization in C.
+
+Includes examples of using lua for scripting command handlers
