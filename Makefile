@@ -1,15 +1,15 @@
 all: client server
 
-USE_TPL=1
-USE_LUA=1
+USE_TPL?=1
+USE_LUA?=1
 
-ifdef USE_TPL
+ifeq ($(USE_TPL),1)
 CFLAGS += -DUSE_TPL
 TPL_SOURCES += tpl.c
 TPL_HEADERS += tpl.h
 endif
 
-ifdef USE_LUA
+ifeq ($(USE_LUA),1)
 CFLAGS += -DUSE_LUA
 LUA_LIBS += -llua
 endif
